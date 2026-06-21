@@ -63,4 +63,11 @@ function libraryApi() {
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), libraryApi()],
+  server: {
+    watch: {
+      // The app writes the saved library here; without this, every save would
+      // trip Vite's file watcher and full-reload the page in an endless loop.
+      ignored: ['**/data/**'],
+    },
+  },
 })
