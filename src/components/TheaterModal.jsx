@@ -36,12 +36,17 @@ export default function TheaterModal({ video, onClose }) {
           </button>
         </div>
         <div className="aspect-video w-full bg-black">
+          {/* sandbox WITHOUT allow-popups / allow-top-navigation* means the
+              browser blocks the logo, title, "Watch on YouTube" and end-screen
+              links — they can't open youtube.com. allow-scripts + allow-same-origin
+              keep the player working; fullscreen stays enabled via allowFullScreen. */}
           <iframe
             key={video.id}
             className="h-full w-full"
             src={embedUrl(video.id)}
             title={video.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             allowFullScreen
           />
         </div>

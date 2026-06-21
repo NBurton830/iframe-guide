@@ -59,10 +59,20 @@ export async function fetchTitle(videoId) {
   return data.title // res.json() already decodes JSON escapes
 }
 
-// Privacy-enhanced embed URL. rel=0 keeps related videos limited to the same
-// channel and the -nocookie host avoids tracking cookies until playback.
+// Privacy-enhanced, locked-down embed URL. The -nocookie host avoids tracking
+// cookies until playback; the params reduce off-site escape hatches:
+//   rel=0            related videos limited to the same channel
+//   modestbranding=1 smaller YouTube logo
+//   iv_load_policy=3 hide clickable annotations/cards
+//   playsinline=1    keep iOS in the sandboxed web player (no native takeover)
+//   disablekb=1      no keyboard shortcuts
+// Click-through to youtube.com is actually blocked by the iframe sandbox in
+// TheaterModal; these params just trim the surface.
 export function embedUrl(videoId) {
-  return `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
+  return (
+    `https://www.youtube-nocookie.com/embed/${videoId}` +
+    `?rel=0&modestbranding=1&iv_load_policy=3&playsinline=1&disablekb=1`
+  )
 }
 
 // Thumbnail straight from YouTube's image CDN — fine for a static placeholder,
