@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
+import legacy from '@vitejs/plugin-legacy'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -62,7 +62,16 @@ function libraryApi() {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), libraryApi()],
+  plugins: [
+    react(),
+    libraryApi(),
+    // Emit transpiled + polyfilled bundles (with a nomodule fallback) so the
+    // app runs on old Chrome/Android that can't parse modern ES modules.
+    legacy({
+      targets: ['defaults', 'chrome >= 60', 'safari >= 11'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+    }),
+  ],
   server: {
     watch: {
       // The app writes the saved library here; without this, every save would
