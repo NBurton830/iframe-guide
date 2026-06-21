@@ -13,14 +13,6 @@ const DATA_FILE = path.resolve(__dirname, 'data/library.json')
 // POST /api/library  -> overwrite library.json with the request body
 function libraryApi() {
   const handler = async (req, res) => {
-    // Mirror the deployed password gate. Off by default locally; set
-    // PORTAL_PASSWORD to test the lock screen against `npm run dev`.
-    const expected = process.env.PORTAL_PASSWORD
-    if (expected && req.headers['x-portal-password'] !== expected) {
-      res.statusCode = 401
-      res.end(JSON.stringify({ error: 'unauthorized' }))
-      return
-    }
     try {
       if (req.method === 'GET') {
         const data = await fs.readFile(DATA_FILE, 'utf8')

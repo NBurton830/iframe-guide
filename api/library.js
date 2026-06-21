@@ -6,29 +6,16 @@
 //
 // Required Vercel setup:
 //   - Connect a Blob store to the project (adds BLOB_READ_WRITE_TOKEN env var).
-//   - Set PORTAL_PASSWORD to the shared family password (enables the gate).
 import { put, list } from '@vercel/blob'
 
 const BLOB_KEY = 'library.json'
 
 export default async function handler(req, res) {
-  // Unauthenticated health probe: reports whether the cloud store is wired up,
-  // without exposing any library data. Used to diagnose cross-device sync.
+  // Health probe: reports whether the cloud store is wired up, without exposing
+  // any library data. Used to diagnose cross-device sync.
   if (req.method === 'GET' && /[?&]health/.test(req.url || '')) {
-    res.status(200).json({
-      hasBlob: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
-      hasPassword: Boolean(process.env.PORTAL_PASSWORD),
-    })
+    res.status(200).json({ hasBlob: Boolean(process.env.BLOB_READ_WRITE_TOKEN) })
     return
-  }
-
-  // Password gate — only enforced when PORTAL_PASSWORD is configured.
-  const expected = process.env.PORTAL_PASSWORD
-  if (expected) {
-    if (req.headers['x-portal-password'] !== expected) {
-      res.status(401).json({ error: 'unauthorized' })
-      return
-    }
   }
 
   try {
