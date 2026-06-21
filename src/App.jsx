@@ -75,13 +75,22 @@ export default function App() {
         if (data && Array.isArray(data.children) && data.children.length) {
           setState(data)
         }
+        setCloudOk(true)
         hydrated.current = true
         setGate('open')
-        if (res.status === 404) persistToServer(stateRef.current) // materialize
         return 'open'
       }
+      if (res.status === 404) {
+        // Cloud reachable but nothing saved yet — materialize current state.
+        setCloudOk(true)
+        hydrated.current = true
+        setGate('open')
+        persistToServer(stateRef.current)
+        return 'open'
+      }
+      setCloudOk(false) // 500/misconfigured — reachable server, broken store
     } catch {
-      /* network/offline — fall through to cached localStorage state */
+      setCloudOk(false) // network / offline / no API
     }
     hydrated.current = true
     setGate('open')
@@ -260,6 +269,16 @@ export default function App() {
             A safe, ad-light place to watch. Private embeds only — no recommendations leaking in.
           </p>
         </header>
+
+        {/* Cloud sync warning — only when a save/load to the server failed */}
+        {cloudOk === false && (
+          <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-800">
+            ⚠ Not syncing to the cloud — changes are saved on this device only.
+            <span className="font-normal">
+              {' '}Check that the Vercel Blob store is connected and redeploy.
+            </span>
+          </div>
+        )}
 
         {/* Child tabs */}
         <nav className="mt-8 flex justify-center gap-3" aria-label="Children">
