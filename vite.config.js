@@ -61,7 +61,9 @@ export default defineConfig({
     // app runs on old Chrome/Android that can't parse modern ES modules.
     legacy({
       targets: ['defaults', 'chrome >= 60', 'safari >= 11'],
-      additionalLegacyPolyfills: ['regenerator-runtime/runtime'],
+      // core-js (auto-injected) covers ES features, but NOT fetch — it's a
+      // browser API. Old browsers without native fetch crash without this.
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime', 'whatwg-fetch'],
     }),
   ],
   server: {
