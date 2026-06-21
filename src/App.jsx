@@ -80,7 +80,12 @@ export default function App() {
 
   // Persist on every change: localStorage immediately (cache), server debounced.
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    } catch {
+      // Storage blocked (private mode / cookies disabled / restricted WebView).
+      // Not fatal — the server (Blob/disk) is the real source of truth.
+    }
     if (!hydrated.current) return
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => persistToServer(state), 400)
