@@ -12,6 +12,16 @@ import { put, list } from '@vercel/blob'
 const BLOB_KEY = 'library.json'
 
 export default async function handler(req, res) {
+  // Unauthenticated health probe: reports whether the cloud store is wired up,
+  // without exposing any library data. Used to diagnose cross-device sync.
+  if (req.method === 'GET' && /[?&]health/.test(req.url || '')) {
+    res.status(200).json({
+      hasBlob: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      hasPassword: Boolean(process.env.PORTAL_PASSWORD),
+    })
+    return
+  }
+
   // Password gate — only enforced when PORTAL_PASSWORD is configured.
   const expected = process.env.PORTAL_PASSWORD
   if (expected) {
@@ -47,6 +57,7 @@ export default async function handler(req, res) {
         contentType: 'application/json',
         addRandomSuffix: false, // stable pathname so we can find it again
         allowOverwrite: true,
+        cacheControlMaxAge: 0, // mutable doc — don't let the CDN serve a stale copy
       })
       res.status(204).end()
       return

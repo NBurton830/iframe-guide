@@ -45,6 +45,7 @@ export default function App() {
   const [gate, setGate] = useState('checking') // 'checking' | 'locked' | 'open'
   const [pwInput, setPwInput] = useState('')
   const [pwError, setPwError] = useState('')
+  const [cloudOk, setCloudOk] = useState(null) // null=unknown, true=syncing, false=local-only
   const flashTimer = useRef(null)
   const fileInput = useRef(null)
   const inFlight = useRef(new Set()) // video IDs whose title fetch is running
@@ -54,9 +55,9 @@ export default function App() {
   stateRef.current = state
 
   function persistToServer(data) {
-    apiSave(data).catch(() => {
-      /* offline / preview build without the API — localStorage still holds it */
-    })
+    apiSave(data)
+      .then((res) => setCloudOk(res.ok)) // 204 ok; 401/500 => not syncing
+      .catch(() => setCloudOk(false)) // offline / no API
   }
 
   // Load the canonical library from the server. Disk file (local) or Vercel Blob
