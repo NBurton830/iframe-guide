@@ -4,9 +4,21 @@ import { parseBatch, fetchTitle } from './lib/youtube.js'
 import VideoCard from './components/VideoCard.jsx'
 import TheaterModal from './components/TheaterModal.jsx'
 import AddBatch from './components/AddBatch.jsx'
+import LockPanel from './components/LockPanel.jsx'
 import { apiGet, apiSave } from './lib/api.js'
 
 const STORAGE_KEY = 'kids-video-portal:v1'
+const LOCK_KEY = 'kids-video-portal:locked'
+
+// Kid lock defaults ON (safe). Stored per-device; if storage is blocked, stay locked.
+function loadLocked() {
+  try {
+    const v = localStorage.getItem(LOCK_KEY)
+    return v === null ? true : v === '1'
+  } catch {
+    return true
+  }
+}
 
 // Full static class strings per accent so Tailwind's scanner keeps them.
 const ACCENTS = {
@@ -40,6 +52,7 @@ export default function App() {
   const [playing, setPlaying] = useState(null) // video record or null
   const [flash, setFlash] = useState('')
   const [cloudOk, setCloudOk] = useState(null) // null=unknown, true=syncing, false=local-only
+  const [locked, setLocked] = useState(loadLocked) // kid lock (block click-out to YouTube)
   const flashTimer = useRef(null)
   const inFlight = useRef(new Set()) // video IDs whose title fetch is running
   const hydrated = useRef(false) // true once we've loaded the canonical library
@@ -90,6 +103,15 @@ export default function App() {
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(() => persistToServer(state), 400)
   }, [state])
+
+  // Persist the kid-lock toggle per-device.
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCK_KEY, locked ? '1' : '0')
+    } catch {
+      /* storage blocked — toggle still applies for this session */
+    }
+  }, [locked])
 
   // Patch a single video record by id, wherever it lives.
   function patchVideo(childId, videoId, patch) {
@@ -155,6 +177,7 @@ export default function App() {
 
   return (
     <div className={`min-h-screen bg-gradient-to-b ${accent.glow} transition-colors duration-500`}>
+      <LockPanel locked={locked} onChange={setLocked} />
       <div className="mx-auto max-w-6xl px-4 pb-20 sm:px-6">
         {/* Header */}
         <header className="flex flex-col items-center gap-2 pt-10 text-center">
@@ -228,7 +251,9 @@ export default function App() {
         )}
       </div>
 
-      {playing && <TheaterModal video={playing} onClose={() => setPlaying(null)} />}
+      {playing && (
+        <TheaterModal video={playing} onClose={() => setPlaying(null)} locked={locked} />
+      )}
     </div>
   )
 }

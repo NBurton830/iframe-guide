@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { embedUrl } from '../lib/youtube.js'
 
-// Full-focus overlay player. Uses the privacy-enhanced youtube-nocookie embed
-// with rel=0 so no outside recommendations surround the video.
-export default function TheaterModal({ video, onClose }) {
+// Full-focus overlay player. Uses the privacy-enhanced youtube-nocookie embed.
+// When `locked` (kid mode) the iframe is sandboxed so clicks can't navigate out
+// to youtube.com; unlocked (parent mode) the player behaves normally.
+export default function TheaterModal({ video, onClose, locked = true }) {
   // Close on Escape and lock body scroll while open.
   useEffect(() => {
     const onKey = (e) => e.key === 'Escape' && onClose()
@@ -36,15 +37,15 @@ export default function TheaterModal({ video, onClose }) {
           </button>
         </div>
         <div className="aspect-video w-full bg-black">
-          {/* NOTE: sandbox is TEMPORARILY DISABLED so YouTube's "confirm you're
-              not a bot" sign-in can open. To re-lock the player (block click-out
-              to youtube.com) add this attribute back to the iframe below:
-                sandbox="allow-scripts allow-same-origin allow-presentation" */}
+          {/* Locked: sandbox WITHOUT allow-popups/allow-top-navigation* blocks the
+              logo/title/"Watch on YouTube" click-outs. Unlocked: no sandbox, so a
+              parent can click through to sign in / watch on YouTube. */}
           <iframe
-            key={video.id}
+            key={`${video.id}-${locked}`}
             className="h-full w-full"
-            src={embedUrl(video.id)}
+            src={embedUrl(video.id, locked)}
             title={video.title}
+            sandbox={locked ? 'allow-scripts allow-same-origin allow-presentation' : undefined}
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             allowFullScreen
           />
