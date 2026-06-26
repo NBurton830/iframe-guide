@@ -36,16 +36,15 @@ export default function TheaterModal({ video, onClose }) {
           </button>
         </div>
         <div className="aspect-video w-full bg-black">
-          {/* sandbox WITHOUT allow-popups / allow-top-navigation* means the
-              browser blocks the logo, title, "Watch on YouTube" and end-screen
-              links — they can't open youtube.com. allow-scripts + allow-same-origin
-              keep the player working; fullscreen stays enabled via allowFullScreen. */}
+          {/* NOTE: sandbox is TEMPORARILY DISABLED so YouTube's "confirm you're
+              not a bot" sign-in can open. To re-lock the player (block click-out
+              to youtube.com) add this attribute back to the iframe below:
+                sandbox="allow-scripts allow-same-origin allow-presentation" */}
           <iframe
             key={video.id}
             className="h-full w-full"
             src={embedUrl(video.id)}
             title={video.title}
-            sandbox="allow-scripts allow-same-origin allow-presentation"
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             allowFullScreen
           />
